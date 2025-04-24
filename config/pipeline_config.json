@@ -1,0 +1,7 @@
+{
+   "s3_bucket": {
+        "raw": "s3://cecepersonal.datalake/raw/",
+        "processed": "s3://cecepersonal.datalake/processed/",
+        "curated": "s3://cecepersonal.datalake/curated/"
+   }
+}
