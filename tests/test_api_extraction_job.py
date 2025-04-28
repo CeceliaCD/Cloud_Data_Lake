@@ -7,5 +7,5 @@ import requests
 
 #obtain raw data from source
 #for file in sample_data:
-    pd.read_excel()
-    pd.read_csv()
+pd.read_excel()
+pd.read_csv()
