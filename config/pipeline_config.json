@@ -1,7 +1,20 @@
 {
+   "api": {
+
+   },
    "s3_bucket": {
-        "raw": "s3://cecepersonal.datalake/raw/",
-        "processed": "s3://cecepersonal.datalake/processed/",
-        "curated": "s3://cecepersonal.datalake/curated/"
+      "bucket": "s3://cecepersonal.datalake/",
+      "raw_prefix": "raw/",
+      "processed_prefix": "processed/",
+      "curated_prefix": "curated/"
+   },
+   "aws_glue": {
+      "crawler_name": "s3datalake_crawler",
+      "database": "census_mentrics_db",
+      "table_prefix": "curated/"
+   },
+   "aws_athena": {
+      "URI": "s3://cecepersonal.datalake/athena_results/",
+      "database": "census_mentrics_db"
    }
 }
