@@ -1,6 +1,7 @@
 {
-   "api": {
-
+   "data_source": {
+      "csv_path": "sample_data/pokemon_data.csv",
+      "URI": ""
    },
    "s3_bucket": {
       "bucket": "s3://cecepersonal.datalake/",
@@ -14,7 +15,7 @@
       "table_prefix": "curated/"
    },
    "aws_athena": {
-      "URI": "s3://cecepersonal.datalake/athena_results/",
+      "URI": "s3://cecepersonal.datalake/curated/",
       "database": "census_mentrics_db"
    }
 }
