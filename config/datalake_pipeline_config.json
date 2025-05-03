@@ -11,11 +11,13 @@
    },
    "aws_glue": {
       "crawler_name": "s3datalake_crawler",
-      "database": "census_mentrics_db",
+      "script": "",
+      "role": "arn:aws:iam::494725113126:role/service-role/AWSGlueServiceRole-datalake_s3_user",
+      "database": "pokemon_index_db",
       "table_prefix": "curated/"
    },
    "aws_athena": {
       "URI": "s3://cecepersonal.datalake/curated/",
-      "database": "census_mentrics_db"
+      "database": "pokemon_index_db"
    }
 }
