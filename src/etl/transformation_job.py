@@ -1,10 +1,16 @@
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
-import sys
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import random
 import math
+abs_path_file = os.path.abspath(__file__)
+curr_dir = os.path.dirname(abs_path_file)
+parent_dir = os.path.dirname(curr_dir)
+sys.path.insert(0, parent_dir)
+from utils.config_loader import load_json_config
+
+config = load_json_config('config/datalake_pipeline_config.json')
 #Setting up logging
 import logging
 logger = logging.getLogger(__name__)
@@ -146,102 +152,100 @@ def check_if_majority_novalue(df, colname, indicator, threshold=0.5):
         return df.drop(colname, axis=1)
     return df
 
-def transform_data(data):
+def transform_data(processing_data_df):
     #Processing raw data for cleaning
     #Dropping duplicates from df
-    processed_data_df = pd.DataFrame(data)
+    if 'Name' in processing_data_df.columns or 'Type 1' in processing_data_df.columns:
+        processing_data_df = processing_data_df.rename(columns={'Name': 'Pokemon_Name', 'Sp. Attack': 'Sp_Attack', 'Sp. Defense': 'Sp_Defense', 'Type 1': 'Type_1', 'Type 2': 'Type_2', 'gen': 'generation'})
     
-    if 'Type 1' in processed_data_df.columns or 'Type 2' in processed_data_df.columns:
-        processed_data_df = processed_data_df.rename(columns={'Type 1': 'Type_1', 'Type 2': 'Type_2', 'gen': 'generation'})
-    
-    processed_data_df = processed_data_df.drop_duplicates()
-    column_names = processed_data_df.columns
+    processing_data_df = processing_data_df.drop_duplicates()
+    column_names = processing_data_df.columns
     print(column_names)
     
     #Dropping columns with missing Pokemon names and adding ID values
-    for index, row in processed_data_df.iterrows():
-        if 'Name' in column_names and pd.isnull(row['Name']):
-            processed_data_df = processed_data_df.drop(index)
+    for index, row in processing_data_df.iterrows():
+        if 'Pokemon_Name' in column_names and pd.isnull(row['Pokemon_Name']):
+            processing_data_df = processing_data_df.drop(index)
         elif 'ID' in column_names and pd.isnull(row['ID']):
-            processed_data_df.at[index, 'ID'] = len(processed_data_df) + 1
+            processing_data_df.at[index, 'ID'] = len(processing_data_df) + 1
             
     #Assigning columns their proper datatypes
-    for index, row in processed_data_df.iterrows():
+    for index, row in processing_data_df.iterrows():
         for col in column_names:
             try:
-                processed_data_df[col] = pd.to_numeric(processed_data_df[col])
+                processing_data_df[col] = pd.to_numeric(processing_data_df[col])
             except Exception as e:
                 print(f"Column contains strings and should be of type string: {e}")
             
     #Pokemon that are mono-types 
     if 'Type_2' in column_names:       
-        processed_data_df['Type_2'].fillna('None')
+        processing_data_df['Type_2'].fillna('None')
         
     #Genderless pokemon numeric value
     if 'gender_male_ratio' in column_names:
-        processed_data_df['gender_male_ratio'].fillna(255).astype(int)
+        processing_data_df['gender_male_ratio'].fillna(255).astype(int)
     
     #Removing columns with majority null values
     for col in column_names:
         print(col)
-        print(type(processed_data_df[col]))
-        col_dtype = processed_data_df[col].dtype
+        print(type(processing_data_df[col]))
+        col_dtype = processing_data_df[col].dtype
         ind = None
         if col_dtype == int or col_dtype == float:
-            processed_data_df = check_if_majority_novalue(processed_data_df, col, ind)
+            processing_data_df = check_if_majority_novalue(processing_data_df, col, ind)
         else:
             ind = ""
-            processed_data_df = check_if_majority_novalue(processed_data_df, col, ind)
+            processing_data_df = check_if_majority_novalue(processing_data_df, col, ind)
     
-    #battle_results_df = processed_data_df[["ID", "Name", "HP"]]
+    #battle_results_df = processing_data_df[["ID", "Name", "HP"]]
     new_ball_cols = ['curr_HP', 'curr_status', 'curr_status_value', 'pokeball_capture', 'greatball_capture', 'other_balls_capture', 'masterball_capture']
-    processed_data_df[new_ball_cols] = None, None, None, None, None, None, None
+    processing_data_df[new_ball_cols] = None, None, None, None, None, None, None
     
-    processed_data_df['curr_HP'] = processed_data_df.apply(lambda row: random.choice(hp_decr) * row['HP'], axis=1)
-    for index, row in processed_data_df.iterrows():
+    processing_data_df['curr_HP'] = processing_data_df.apply(lambda row: random.choice(hp_decr) * row['HP'], axis=1)
+    for index, row in processing_data_df.iterrows():
         if row['generation'] == 1:
-            if processed_data_df.loc[index,'pokeball_capture'] is None:
+            if processing_data_df.loc[index,'pokeball_capture'] is None:
                 curr_stat, curr_stat_val, ball_capprob = approx_capture_probabilitygen1(row, pokeballs[0])
-                processed_data_df.loc[index, 'curr_status'] = curr_stat
-                processed_data_df.loc[index, 'curr_status_value'] = curr_stat_val
-                processed_data_df.loc[index, 'pokeball_capture'] = ball_capprob
-            if processed_data_df.loc[index,'greatball_capture'] is None:
+                processing_data_df.loc[index, 'curr_status'] = curr_stat
+                processing_data_df.loc[index, 'curr_status_value'] = curr_stat_val
+                processing_data_df.loc[index, 'pokeball_capture'] = ball_capprob
+            if processing_data_df.loc[index,'greatball_capture'] is None:
                 curr_stat, curr_stat_val, ball_capprob = approx_capture_probabilitygen1(row, pokeballs[1])
-                processed_data_df.loc[index, 'curr_status'] = curr_stat
-                processed_data_df.loc[index, 'curr_status_value'] = curr_stat_val
-                processed_data_df.loc[index, 'greatball_capture'] = ball_capprob
-            if processed_data_df.loc[index,'other_balls_capture'] is None:
+                processing_data_df.loc[index, 'curr_status'] = curr_stat
+                processing_data_df.loc[index, 'curr_status_value'] = curr_stat_val
+                processing_data_df.loc[index, 'greatball_capture'] = ball_capprob
+            if processing_data_df.loc[index,'other_balls_capture'] is None:
                 curr_stat, curr_stat_val, ball_capprob = approx_capture_probabilitygen1(row, pokeballs[2])
-                processed_data_df.loc[index, 'curr_status'] = curr_stat
-                processed_data_df.loc[index, 'curr_status_value'] = curr_stat_val
-                processed_data_df.loc[index, 'other_balls_capture'] = ball_capprob
-            if processed_data_df.loc[index,'masterball_capture'] is None:
+                processing_data_df.loc[index, 'curr_status'] = curr_stat
+                processing_data_df.loc[index, 'curr_status_value'] = curr_stat_val
+                processing_data_df.loc[index, 'other_balls_capture'] = ball_capprob
+            if processing_data_df.loc[index,'masterball_capture'] is None:
                 curr_stat, curr_stat_val, ball_capprob = approx_capture_probabilitygen1(row, pokeballs[3])
-                processed_data_df.loc[index, 'curr_status'] = curr_stat
-                processed_data_df.loc[index, 'curr_status_value'] = curr_stat_val
-                processed_data_df.loc[index, 'masterball_capture'] = ball_capprob
+                processing_data_df.loc[index, 'curr_status'] = curr_stat
+                processing_data_df.loc[index, 'curr_status_value'] = curr_stat_val
+                processing_data_df.loc[index, 'masterball_capture'] = ball_capprob
         else:
-            if processed_data_df.loc[index,'pokeball_capture'] is None:
+            if processing_data_df.loc[index,'pokeball_capture'] is None:
                 curr_stat, curr_stat_val, ball_capprob = approx_capture_probabilitygen2onwards(row, pokeballs[0])
-                processed_data_df.loc[index, 'curr_status'] = curr_stat
-                processed_data_df.loc[index, 'curr_status_value'] = curr_stat_val
-                processed_data_df.loc[index, 'pokeball_capture'] = ball_capprob
-            if processed_data_df.loc[index,'greatball_capture'] is None:
+                processing_data_df.loc[index, 'curr_status'] = curr_stat
+                processing_data_df.loc[index, 'curr_status_value'] = curr_stat_val
+                processing_data_df.loc[index, 'pokeball_capture'] = ball_capprob
+            if processing_data_df.loc[index,'greatball_capture'] is None:
                 curr_stat, curr_stat_val, ball_capprob = approx_capture_probabilitygen2onwards(row, pokeballs[1])
-                processed_data_df.loc[index, 'curr_status'] = curr_stat
-                processed_data_df.loc[index, 'curr_status_value'] = curr_stat_val
-                processed_data_df.loc[index, 'greatball_capture'] = ball_capprob
-            if processed_data_df.loc[index,'other_balls_capture'] is None:
+                processing_data_df.loc[index, 'curr_status'] = curr_stat
+                processing_data_df.loc[index, 'curr_status_value'] = curr_stat_val
+                processing_data_df.loc[index, 'greatball_capture'] = ball_capprob
+            if processing_data_df.loc[index,'other_balls_capture'] is None:
                 curr_stat, curr_stat_val, ball_capprob = approx_capture_probabilitygen2onwards(row, pokeballs[2])
-                processed_data_df.loc[index, 'curr_status'] = curr_stat
-                processed_data_df.loc[index, 'curr_status_value'] = curr_stat_val
-                processed_data_df.loc[index, 'other_balls_capture'] = ball_capprob
-            if processed_data_df.loc[index,'masterball_capture'] is None:
+                processing_data_df.loc[index, 'curr_status'] = curr_stat
+                processing_data_df.loc[index, 'curr_status_value'] = curr_stat_val
+                processing_data_df.loc[index, 'other_balls_capture'] = ball_capprob
+            if processing_data_df.loc[index,'masterball_capture'] is None:
                 curr_stat, curr_stat_val, ball_capprob = approx_capture_probabilitygen2onwards(row, pokeballs[3])
-                processed_data_df.loc[index, 'curr_status'] = curr_stat
-                processed_data_df.loc[index, 'curr_status_value'] = curr_stat_val
-                processed_data_df.loc[index, 'masterball_capture'] = ball_capprob
+                processing_data_df.loc[index, 'curr_status'] = curr_stat
+                processing_data_df.loc[index, 'curr_status_value'] = curr_stat_val
+                processing_data_df.loc[index, 'masterball_capture'] = ball_capprob
             
-    print(processed_data_df)
-    processed_data_df.to_json('sample_data/pokemon_processed_data_results.json', orient='records')  #index         
-    return processed_data_df
+    print(processing_data_df) 
+    
+    return processing_data_df

@@ -1,6 +1,8 @@
 {
    "data_source": {
-      "csv_path": "sample_data/pokemon_data.csv",
+      "csv_file": "pokemon_data.csv",
+      "processed_file": "pokemon_processsed_data_results.json",
+      "curated_file": "pokemon_curated_data_results.json",
       "URI": ""
    },
    "s3_bucket": {
@@ -11,13 +13,28 @@
    },
    "aws_glue": {
       "crawler_name": "s3datalake_crawler",
-      "script": "",
-      "role": "arn:aws:iam::494725113126:role/service-role/AWSGlueServiceRole-datalake_s3_user",
-      "database": "pokemon_index_db",
-      "table_prefix": "curated/"
+      "catalog": "pokemon_index_db",
+      "etl_jobs": [{
+         "name": "processing_raw_pokemon_data_job",
+         "scripts": [
+            "src/etl/extraction_job.py",
+            "src/etl/transformation_job.py",
+            "src/etl/data_loader_job.py"
+         ]
+      },
+      {
+         "name": "curating_processed_pokemon_data_job",
+         "scripts": [
+            "src/etl/extraction_job.py",
+            "src/queries/athena_runner.py",
+            "src/etl/data_loader_job.py"
+         ]
+      }
+   ]
    },
    "aws_athena": {
       "URI": "s3://cecepersonal.datalake/curated/",
-      "database": "pokemon_index_db"
+      "catalog": "pokemon_index_db",
+      "schema": "pokemon_curated"
    }
 }
