@@ -130,7 +130,7 @@ def run_etl_pipeline():
                 '--TempDir': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["temp"]),
                 '--extra-py-files': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["dependencies"] + 'pokemon_datalake_and_anltx-0.1.0-py3-none-any.whl'),
                 '--job-language': 'python',
-                '--additional-python-modules': 'pandas,requests,pyarrow.parquet,avro-python3'
+                '--additional-python-modules': 'pandas,requests,pyarrow,avro-python3'
             },
             MaxRetries=0,
             GlueVersion='1.0',
@@ -181,7 +181,7 @@ def run_etl_pipeline():
                 '--TempDir': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["temp"]),
                 '--extra-py-files': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["dependencies"] + 'pokemon_datalake_and_anltx-0.1.0-py3-none-any.whl'),
                 '--job-language': 'python',
-                '--additional-python-modules': 'pandas,requests,pyarrow.parquet,avro-python3'
+                '--additional-python-modules': 'pandas,requests,pyarrow,avro-python3'
             },
             MaxRetries=0,
             GlueVersion='1.0',

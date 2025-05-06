@@ -7,7 +7,7 @@ setup(
     install_requires=[
         'pandas',
         'requests',
-        'pyarrow.parquet',
+        'pyarrow',
         'avro-python3'
     ],
     include_package_data=True,
