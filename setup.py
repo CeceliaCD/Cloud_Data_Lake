@@ -5,8 +5,7 @@ setup(
     version='0.1.0',
     packages=find_packages(),
     install_requires=[
-        "pandas==1.3.5",
-        "botocore==1.24.21"
+        "pandas==1.3.3"
     ],
     include_package_data=True,
     description='The .whl package of pokemon datalake and analytics project.',

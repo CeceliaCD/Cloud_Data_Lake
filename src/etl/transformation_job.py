@@ -1,7 +1,6 @@
 import pandas as pd
 import random
 import math
-import importlib.resources as pkg_resources
 
 #Setting up logging
 import logging

@@ -5,10 +5,7 @@ from src.etl.extraction_job import extract_s3_data
 from src.etl.transformation_job import transform_data
 from src.etl.data_loader_job import load_s3_data
 from src.queries.athena_runner import run_athena_queries
-from utils.config_loader import load_json_config
 import datetime as datetime
-from dotenv import load_dotenv
-load_dotenv(override=True)
 import logging
 logger = logging.getLogger(__name__)
 import importlib.resources as pkg_resources

@@ -1,14 +1,2 @@
 pandas==1.3.5
-pyarrow==5.0.0
-charset-normalizer==2.0.12
-requests==2.26.0
-urllib3==1.26.7
-pytz==2021.3
-aiobotocore==2.2.0
-botocore==1.24.21
-awswrangler==2.14.0
-boto3==1.21.21
-numpy==1.21.6
-scipy==1.7.3
-s3fs==2021.11.1
-avro-python3==1.10.2
+boto3
