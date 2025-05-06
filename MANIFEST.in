@@ -8,5 +8,6 @@ prune .git
 prune .venv
 prune glue_launcher
 exlcude .env
+exlcude main.py
 exclude .gitignore
 exclude .DS_Store
