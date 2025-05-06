@@ -128,7 +128,7 @@ def run_etl_pipeline():
             },
             DefaultArguments={
                 '--TempDir': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["temp"]),
-                '--extra-py-files': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["dependencies"] + 'pokemon_datalake_and_anltx-0.1.0-py3-none-any.whl'),
+                '--extra-py-files': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["dependencies"] + 'pokemon_datalake_and_anltx-0.1.0-cp39-none-any.whl'),
                 '--job-language': 'python',
                 '--additional-python-modules': 'pandas,requests,pyarrow,avro-python3'
             },
@@ -179,7 +179,7 @@ def run_etl_pipeline():
             },
             DefaultArguments={
                 '--TempDir': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["temp"]),
-                '--extra-py-files': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["dependencies"] + 'pokemon_datalake_and_anltx-0.1.0-py3-none-any.whl'),
+                '--extra-py-files': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["dependencies"] + 'pokemon_datalake_and_anltx-0.1.0-cp39-none-any.whl'),
                 '--job-language': 'python',
                 '--additional-python-modules': 'pandas,requests,pyarrow,avro-python3'
             },
