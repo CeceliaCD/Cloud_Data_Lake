@@ -134,8 +134,6 @@ def run_etl_pipeline():
             },
             MaxRetries=0,
             GlueVersion='3.0',
-            NumberOfWorkers=2,
-            WorkerType='G.1X',
             Description='Job for processing raw Pokémon data.'
         )
         print(f"Job has been created: {response['Name']}")
@@ -187,8 +185,6 @@ def run_etl_pipeline():
             },
             MaxRetries=0,
             GlueVersion='3.0',
-            NumberOfWorkers=2,
-            WorkerType='G.1X',
             Description='Job for curating processed Pokémon data.'
         )
         print(f"Job has been created: {response2['Name']}")
