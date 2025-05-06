@@ -7,6 +7,7 @@ global-exclude __pycache__/*
 prune .git
 prune .venv
 prune glue_launcher
+prune utils
 exlcude .env
 exlcude main.py
 exclude .gitignore

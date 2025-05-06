@@ -1,17 +1,10 @@
 import pandas as pd
-import os
-"""
-abs_path_file = os.path.abspath(__file__)
-curr_dir = os.path.dirname(abs_path_file)
-parent_dir = os.path.dirname(curr_dir)
-sys.path.insert(0, parent_dir)
-"""
-from utils.config_loader import load_json_config
-LOCAL_CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'config', 'datalake_pipeline_config.json')
-GLUE_CONFIG_PATH = '/tmp/config/datalake_pipeline_config.json'
+import json
+import importlib.resources as pkg_resources
+import config
 
-config_path = GLUE_CONFIG_PATH if os.path.exists(GLUE_CONFIG_PATH) else LOCAL_CONFIG_PATH
-config = load_json_config(config_path)
+with pkg_resources.open_text(config, "datalake_pipeline_config.json") as f:
+    config_file = json.load(f)
 
 #Setting up logging
 import logging
@@ -19,7 +12,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 def load_s3_data(client, df, keypath):
-    bucketname = config["s3_bucket"]["bucket"]
+    bucketname = config_file["s3_bucket"]["bucket"]
     try:    
         #Transformed raw data to processed df and uploading to processed/
         if isinstance(df, pd.DataFrame):

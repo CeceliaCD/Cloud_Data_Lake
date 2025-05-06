@@ -1,16 +1,9 @@
-import os
-"""
-abs_path_file = os.path.abspath(__file__)
-curr_dir = os.path.dirname(abs_path_file)
-parent_dir = os.path.dirname(curr_dir)
-sys.path.insert(0, parent_dir)
-"""
-from utils.config_loader import load_json_config
-LOCAL_CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'config', 'datalake_pipeline_config.json')
-GLUE_CONFIG_PATH = '/tmp/config/datalake_pipeline_config.json'
+import json
+import importlib.resources as pkg_resources
+import config
 
-config_path = GLUE_CONFIG_PATH if os.path.exists(GLUE_CONFIG_PATH) else LOCAL_CONFIG_PATH
-config = load_json_config(config_path)
+with pkg_resources.open_text(config, "datalake_pipeline_config.json") as f:
+    config_file = json.load(f)
 
 def load_queries_from_sql_file(file_path):
     with open(file_path, 'r') as qf:
@@ -25,8 +18,8 @@ def run_athena_queries(client, keypath, id):
         athena_response_id = client.start_query_execution(
             QueryString=query,
             Query_Execution_Context={
-                'Database': config["aws_athena"]["schema"],
-                'Catalog': config["aws_athena"]["catalog"]
+                'Database': config_file["aws_athena"]["schema"],
+                'Catalog': config_file["aws_athena"]["catalog"]
             },
             Result_Configuration={
                 'OutputLocation': keypath,

@@ -1,21 +1,8 @@
 import pandas as pd
-import sys, os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import random
 import math
-"""
-abs_path_file = os.path.abspath(__file__)
-curr_dir = os.path.dirname(abs_path_file)
-parent_dir = os.path.dirname(curr_dir)
-sys.path.insert(0, parent_dir)
-"""
-from utils.config_loader import load_json_config
+import importlib.resources as pkg_resources
 
-LOCAL_CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'config', 'datalake_pipeline_config.json')
-GLUE_CONFIG_PATH = '/tmp/config/datalake_pipeline_config.json'
-
-config_path = GLUE_CONFIG_PATH if os.path.exists(GLUE_CONFIG_PATH) else LOCAL_CONFIG_PATH
-config = load_json_config(config_path)
 #Setting up logging
 import logging
 logger = logging.getLogger(__name__)
@@ -197,7 +184,6 @@ def transform_data(processing_data_df):
             ind = ""
             processing_data_df = check_if_majority_novalue(processing_data_df, col, ind)
     
-    #battle_results_df = processing_data_df[["ID", "Name", "HP"]]
     new_ball_cols = ['curr_HP', 'curr_status', 'curr_status_value', 'pokeball_capture', 'greatball_capture', 'other_balls_capture', 'masterball_capture']
     processing_data_df[new_ball_cols] = None, None, None, None, None, None, None
     

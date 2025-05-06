@@ -1,5 +1,4 @@
 import json
-import os
 
 def load_json_config(path):
     with open(path, "r") as f:
