@@ -1,5 +1,5 @@
 import pandas as pd
-import os, sys
+import os
 """
 abs_path_file = os.path.abspath(__file__)
 curr_dir = os.path.dirname(abs_path_file)

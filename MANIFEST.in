@@ -3,9 +3,10 @@ global-exclude *.pyc
 global-exclude *.pyo
 global-exclude __pycache__/*
 
-# Exclude virtual environments and Git
+# Exclude virtual environments, Git, and unnecessary files
 prune .git
 prune .venv
+prune glue_launcher
 exlcude .env
 exclude .gitignore
 exclude .DS_Store

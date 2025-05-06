@@ -1,14 +1,12 @@
 import pandas as pd
-from io import StringIO, BytesIO
+from io import BytesIO
 import requests
-from pathlib import Path
-import os, sys
+import os
 import csv
 import json
 import pyarrow.parquet as pq
 import avro.datafile
 import avro.io
-import avro.schema
 """
 abs_path_file = os.path.abspath(__file__)
 curr_dir = os.path.dirname(abs_path_file)

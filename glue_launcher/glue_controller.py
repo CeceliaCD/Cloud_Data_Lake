@@ -124,7 +124,7 @@ def run_etl_pipeline():
             Command={
                 'Name': 'pythonshell',
                 'ScriptLocation': config["aws_glue"]["S3_URI"],  
-                'PythonVersion': '3'
+                'PythonVersion': '3.9'
             },
             DefaultArguments={
                 '--TempDir': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["temp"]),
@@ -175,7 +175,7 @@ def run_etl_pipeline():
             Command={
                 'Name': 'pythonshell',
                 'ScriptLocation': config["aws_glue"]["S3_URI"],  
-                'PythonVersion': '3'
+                'PythonVersion': '3.9'
             },
             DefaultArguments={
                 '--TempDir': str(config["s3_bucket"]["bucket"] + config["s3_bucket"]["temp"]),
