@@ -2,8 +2,10 @@ import json
 import importlib.resources as pkg_resources
 import config
 
-with pkg_resources.open_text(config, "datalake_pipeline_config.json") as f:
-    config_file = json.load(f)
+config_path = pkg_resources.files(config).joinpath("datalake_pipeline_config.json")
+
+with config_path.open('r', encoding='utf-8') as f:
+    config_data = json.load(f)
 
 def load_queries_from_sql_file(file_path):
     with open(file_path, 'r') as qf:
@@ -18,8 +20,8 @@ def run_athena_queries(client, keypath, id):
         athena_response_id = client.start_query_execution(
             QueryString=query,
             Query_Execution_Context={
-                'Database': config_file["aws_athena"]["schema"],
-                'Catalog': config_file["aws_athena"]["catalog"]
+                'Database': config_data["aws_athena"]["schema"],
+                'Catalog': config_data["aws_athena"]["catalog"]
             },
             Result_Configuration={
                 'OutputLocation': keypath,

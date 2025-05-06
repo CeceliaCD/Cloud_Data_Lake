@@ -3,8 +3,10 @@ import json
 import importlib.resources as pkg_resources
 import config
 
-with pkg_resources.open_text(config, "datalake_pipeline_config.json") as f:
-    config_file = json.load(f)
+config_path = pkg_resources.files(config).joinpath("datalake_pipeline_config.json")
+
+with config_path.open('r', encoding='utf-8') as f:
+    config_data = json.load(f)
 
 #Setting up logging
 import logging
@@ -12,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 def load_s3_data(client, df, keypath):
-    bucketname = config_file["s3_bucket"]["bucket"]
+    bucketname = config_data["s3_bucket"]["bucket"]
     try:    
         #Transformed raw data to processed df and uploading to processed/
         if isinstance(df, pd.DataFrame):

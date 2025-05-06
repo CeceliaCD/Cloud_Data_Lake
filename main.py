@@ -1,5 +1,6 @@
 import sys,os
 import boto3
+import json
 from src.etl.extraction_job import extract_s3_data
 from src.etl.transformation_job import transform_data
 from src.etl.data_loader_job import load_s3_data
@@ -13,8 +14,10 @@ logger = logging.getLogger(__name__)
 import importlib.resources as pkg_resources
 import config
 
-with pkg_resources.open_text(config, "datalake_pipeline_config.json") as f:
-    config_file = load_json_config(f)
+config_path = pkg_resources.files(config).joinpath("datalake_pipeline_config.json")
+
+with config_path.open('r', encoding='utf-8') as f:
+    config_data = json.load(f)
 
 try:
     from awsglue.utils import getResolvedOptions
@@ -48,16 +51,16 @@ def main():
     s3_client = get_s3_client()
     
     
-    if job_name == config_file["aws_glue"]["etl_jobs"][0]["name"]:
-        csv_file = 'sample/' + config_file["data_source"]["csv_file"]
-        load_s3_data(s3_client, csv_file, config_file["s3_bucket"]["raw_prefix"])
+    if job_name == config_data["aws_glue"]["etl_jobs"][0]["name"]:
+        csv_file = 'sample/' + config_data["data_source"]["csv_file"]
+        load_s3_data(s3_client, csv_file, config_data["s3_bucket"]["raw_prefix"])
         
         rd_df = extract_s3_data(s3_client, input_path)
         
         cleaned_df = transform_data(rd_df)
         
         load_s3_data(s3_client, cleaned_df, output_path)
-    elif job_name == config_file["aws_glue"]["etl_jobs"][1]["name"]:
+    elif job_name == config_data["aws_glue"]["etl_jobs"][1]["name"]:
         athena_client = get_athena_client()
         
         processed_df = extract_s3_data(s3_client, input_path)
