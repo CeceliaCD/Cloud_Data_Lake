@@ -9,11 +9,15 @@
       "bucket": "s3://cecepersonal.datalake/",
       "raw_prefix": "raw/",
       "processed_prefix": "processed/",
-      "curated_prefix": "curated/"
+      "curated_prefix": "curated/",
+      "temp": "temp/",
+      "scripts": "scripts/",
+      "dependencies": "dependencies/"
    },
    "aws_glue": {
       "crawler_name": "s3datalake_crawler",
       "catalog": "pokemon_index_db",
+      "S3_URI": "s3://cecepersonal.datalake/scripts/main.py",
       "etl_jobs": [{
          "name": "processing_raw_pokemon_data_job",
          "scripts": [

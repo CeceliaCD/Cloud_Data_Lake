@@ -1,0 +1,11 @@
+# Exclude Python cache files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__/*
+
+# Exclude virtual environments and Git
+prune .git
+prune .venv
+exlcude .env
+exclude .gitignore
+exclude .DS_Store

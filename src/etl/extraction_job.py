@@ -6,15 +6,21 @@ import os, sys
 import csv
 import json
 import pyarrow.parquet as pq
-import fastavro
-
+import avro.datafile
+import avro.io
+import avro.schema
+"""
 abs_path_file = os.path.abspath(__file__)
 curr_dir = os.path.dirname(abs_path_file)
 parent_dir = os.path.dirname(curr_dir)
 sys.path.insert(0, parent_dir)
+"""
 from utils.config_loader import load_json_config
+LOCAL_CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'config', 'datalake_pipeline_config.json')
+GLUE_CONFIG_PATH = '/tmp/config/datalake_pipeline_config.json'
 
-config = load_json_config("config/datalake_pipeline_config.json")
+config_path = GLUE_CONFIG_PATH if os.path.exists(GLUE_CONFIG_PATH) else LOCAL_CONFIG_PATH
+config = load_json_config(config_path)
 
 #Setting up logging
 import logging
@@ -26,37 +32,35 @@ def extract_s3_data(client, keypath):
     raw_data_df = pd.DataFrame()
     if config['data_source']['URI'] == "":
         bucketname = config["s3_bucket"]["bucket"]
-        
-        prefix_dir = keypath.split('/')[3] + '/'
-        filename = os.path.basename(keypath)
-        key = prefix_dir+filename
+        key = keypath.split('/')[3] + '/'
         
         obj_list = client.list_objects_v2(Bucket=bucketname, Prefix=key)
         contents = obj_list.get('Contents', [])
        
         for obj in contents:
             key = obj["Key"]
-            if key.endswith('.csv'):
+            if keypath.endswith('.csv'):
                 obj_response = client.get_object(Bucket=bucketname, Key=key)
                 f = obj_response['Body']
                 raw_data = [row for row in csv.DictReader(f)]
-                raw_data_df.append(raw_data)
-            if key.endswith('.json'):
+                raw_data_df = pd.concat([raw_data_df, pd.DataFrame(raw_data)], ignore_index=True)
+            if keypath.endswith('.json'):
                 obj_response = client.get_object(Bucket=bucketname, Key=key)
                 f = obj_response['Body']
                 raw_data = json.load(f)
-                raw_data_df.append(raw_data)
-            if key.endswith('.parquet'):
+                raw_data_df = pd.concat([raw_data_df, pd.DataFrame(raw_data)], ignore_index=True)
+            if keypath.endswith('.parquet'):
                 obj_response = client.get_object(Bucket=bucketname, Key=key)
                 file_stream = BytesIO(obj_response['Body'].read())
                 table = pq.read_table(file_stream)
-                raw_data_df.append(table.to_pandas())
-            if key.endswith('.avro'):
+                raw_data_df = pd.concat([raw_data_df, table.to_pandas()], ignore_index=True)
+            if keypath.endswith('.avro'):
                 obj_response = client.get_object(Bucket=bucketname, Key=key)
-                file_stream = BytesIO(['Body'].read())
-                reader = fastavro.reader(file_stream)
+                file_stream = BytesIO(obj_response['Body'].read())
+                reader = avro.datafile.DataFileReader(file_stream, avro.io.DatumReader())
                 records = [record for record in reader]
-                raw_data_df.append(records)
+                reader.close()
+                raw_data_df = pd.concat([raw_data_df, pd.DataFrame(records)], ignore_index=True)
     """
     else:
         data_response = requests.get(config['data_source']['URI'])
@@ -70,4 +74,5 @@ def extract_s3_data(client, keypath):
             except Exception as e:
                 print(f'Data is not correct file format: {e}' )
     """  
+    print('File extracted from S3.')
     return raw_data_df

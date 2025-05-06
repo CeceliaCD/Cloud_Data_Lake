@@ -1,16 +1,21 @@
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import random
 import math
+"""
 abs_path_file = os.path.abspath(__file__)
 curr_dir = os.path.dirname(abs_path_file)
 parent_dir = os.path.dirname(curr_dir)
 sys.path.insert(0, parent_dir)
+"""
 from utils.config_loader import load_json_config
 
-config = load_json_config('config/datalake_pipeline_config.json')
+LOCAL_CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'config', 'datalake_pipeline_config.json')
+GLUE_CONFIG_PATH = '/tmp/config/datalake_pipeline_config.json'
+
+config_path = GLUE_CONFIG_PATH if os.path.exists(GLUE_CONFIG_PATH) else LOCAL_CONFIG_PATH
+config = load_json_config(config_path)
 #Setting up logging
 import logging
 logger = logging.getLogger(__name__)
@@ -50,7 +55,6 @@ def prob_of_status(stat, stat_i, pkmn_df):
         max_damage = 4 * stat_i
         par_brn_psn = (pkmn_df['normal_weakness'], pkmn_df['ghost_weakness'], pkmn_df['electric_weakness'], pkmn_df['fire_weakness'], pkmn_df['poison_weakness'])
         attk = random.choice(par_brn_psn)
-        print(type(attk))
         sp = attk * stat_i
         if sp <= max_damage/4: #0-25
             return 0 if pkmn_df['generation'] == 1 else 1
@@ -66,9 +70,6 @@ def approx_capture_probabilitygen1(pokemon_df, ball):
     status_condition_tuple = (['PAR/BRN/PSN',12], ['FRZ/SLP',25], ('otherwise',0))
     status = random.choice(status_condition_tuple)
     status_str, status_int = status[0], prob_of_status(status[0], status[1], pokemon_df)
-    print('Ball is: ' + ball[0])
-    print('ball value type: ' + str(type(ball[1])))
-    print('status int value type: ' + str(type(status_int)))
     #Cases where by default, or after certain conditions pass, the probability of capture is certain
     cp = 1
     
@@ -121,7 +122,6 @@ def approx_capture_probabilitygen2onwards(pokemon_df, ball):
     elif ball[0] == 'poke_ball':
         if pokemon_df['curr_HP'] == pokemon_df['HP'] and status_str == 'otherwise':
             #pokemon is full health and no status condition
-            print(type(pokemon_df['capturing_rate']))
             a = pokemon_df['capturing_rate']/3
             return status_str, status_int, a
         else:
