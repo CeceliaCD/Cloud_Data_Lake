@@ -133,7 +133,7 @@ def run_etl_pipeline():
                 '--additional-python-modules': 'pandas,requests,pyarrow.parquet,avro-python3,csv,json'
             },
             MaxRetries=0,
-            GlueVersion='2.0',
+            GlueVersion='1.0',
             Description='Job for processing raw Pokémon data.'
         )
         print(f"Job has been created: {response['Name']}")
@@ -184,7 +184,7 @@ def run_etl_pipeline():
                 '--additional-python-modules': 'pandas,requests,pyarrow.parquet,avro-python3,csv,json'
             },
             MaxRetries=0,
-            GlueVersion='2.0',
+            GlueVersion='1.0',
             Description='Job for curating processed Pokémon data.'
         )
         print(f"Job has been created: {response2['Name']}")
