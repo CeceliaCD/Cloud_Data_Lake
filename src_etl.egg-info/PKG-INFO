@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: src_etl
+Version: 0.1.0
+Summary: The etl modules and sql queries for pokemon datalake and analytics project.
+Requires-Dist: pandas
+Requires-Dist: boto3
+Dynamic: requires-dist
+Dynamic: summary

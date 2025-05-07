@@ -8,7 +8,16 @@ prune .git
 prune .venv
 prune glue_launcher
 prune utils
-exlcude .env
-exlcude main.py
+exclcude .env
+exclcude main.py
 exclude .gitignore
-exclude .DS_Store
+exclude requirements.txt
+global-exclude .DS_Store
+exclude MANIFEST.in
+
+exclude setup.py
+recursive-include src/queries/ *.py
+recursive-include src/queries/ *.sql
+#include config/datalake_pipeline_config.json
+#include sample_data/pokemon_data.csv
+

@@ -1,4 +1,4 @@
-import sys,os
+import sys
 import boto3
 import json
 from src.etl.extraction_job import extract_s3_data
@@ -15,7 +15,7 @@ config_path = pkg_resources.files(config).joinpath("datalake_pipeline_config.jso
 
 with config_path.open('r', encoding='utf-8') as f:
     config_data = json.load(f)
-
+    
 try:
     from awsglue.utils import getResolvedOptions
 except ImportError:
@@ -47,15 +47,14 @@ def main():
     
     s3_client = get_s3_client()
     
-    
     if job_name == config_data["aws_glue"]["etl_jobs"][0]["name"]:
-        csv_file = 'sample/' + config_data["data_source"]["csv_file"]
-        load_s3_data(s3_client, csv_file, config_data["s3_bucket"]["raw_prefix"])
-        
+        #Extract
         rd_df = extract_s3_data(s3_client, input_path)
         
+        #Transform
         cleaned_df = transform_data(rd_df)
         
+        #Load
         load_s3_data(s3_client, cleaned_df, output_path)
     elif job_name == config_data["aws_glue"]["etl_jobs"][1]["name"]:
         athena_client = get_athena_client()

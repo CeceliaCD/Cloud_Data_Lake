@@ -1,12 +1,13 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='pokemon_datalake_and_anltx',
+    name='src_etl',
     version='0.1.0',
     packages=find_packages(),
     install_requires=[
-        "pandas==1.3.3"
+        'pandas',
+        'boto3'
     ],
     include_package_data=True,
-    description='The .whl package of pokemon datalake and analytics project.',
+    description='The etl modules and sql queries for pokemon datalake and analytics project.',
 )
