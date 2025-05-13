@@ -1,10 +1,10 @@
 import sys
 import boto3
 import json
-from src.etl.extraction_job import extract_s3_data
-from src.etl.transformation_job import transform_data
-from src.etl.data_loader_job import load_s3_data
-from src.queries.athena_runner import run_athena_queries
+from pokemonetl.etl.extraction_job import extract_s3_data
+from pokemonetl.etl.transformation_job import transform_data
+from pokemonetl.etl.data_loader_job import load_s3_data
+from pokemonetl.queries.athena_runner import run_athena_queries
 import datetime as datetime
 import logging
 logger = logging.getLogger(__name__)
@@ -48,6 +48,10 @@ def main():
     s3_client = get_s3_client()
     
     if job_name == config_data["aws_glue"]["etl_jobs"][0]["name"]:
+        #Loading raw data to raw zone
+        #filename = 'sample_data/pokemon_data.csv'
+        #load_s3_data(s3_client, filename, input_path)
+        
         #Extract
         rd_df = extract_s3_data(s3_client, input_path)
         
@@ -59,10 +63,7 @@ def main():
     elif job_name == config_data["aws_glue"]["etl_jobs"][1]["name"]:
         athena_client = get_athena_client()
         
-        processed_df = extract_s3_data(s3_client, input_path)
-        
-        run_athena_queries(athena_client, processed_df, output_path, acct_id)
-        athena_client.close()
+        run_athena_queries(athena_client, input_path, output_path, acct_id)
     
 if __name__ == '__main__':
     main()

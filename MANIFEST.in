@@ -12,12 +12,18 @@ exclcude .env
 exclcude main.py
 exclude .gitignore
 exclude requirements.txt
+exclude constraints.txt
 global-exclude .DS_Store
 exclude MANIFEST.in
 
 exclude setup.py
-recursive-include src/queries/ *.py
-recursive-include src/queries/ *.sql
-#include config/datalake_pipeline_config.json
-#include sample_data/pokemon_data.csv
+recursive-include pokemonetl/etl *.py
+recursive-include pokemonetl/queries *.py
+recursive-include pokemonetl/queries *.sql
+
+#Optionally include sample data
+recursive-include sample_data/ *.py
+recursive-include sample_data/ *.csv
+recursive-include config/ *.py
+recursive-include config/ *.json
 

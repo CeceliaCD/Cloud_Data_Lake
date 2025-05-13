@@ -26,10 +26,11 @@ region_name = os.getenv("AWS_DEFAULT_REGION")
 acct_id = os.getenv("ACCOUNT_ID")
 
 """_summary_
+ETL transform and load data to S3
 
-Glue Crawler job to Scan Processed Zone and Update Catalog
+Glue Crawler job to Scan Processed and Curated Zone and Update Catalog
 
-Run Athena Query  to get Curated data then Store in "curated/"
+Run Athena Query to get Curated data then Store in "curated/"
 
 Connect Tableau to Athena for visualization
 """
@@ -58,23 +59,33 @@ def start_glue_job(client, etl_job_name, arguments):
 def wait_for_job_and_crawler_completion(client, etl_job_name, run_id):
     while True:
         glue_response = client.get_job_run(JobName=etl_job_name, RunId=run_id)
-        status = glue_response['JobRun']['JobRunState']
-        print(f"Job {etl_job_name} (Run ID: {run_id}) status: {status}")
-        if status in ['SUCCEEDED', 'FAILED', 'STOPPED']:
+        job_status = glue_response['JobRun']['JobRunState']
+        print(f"Job {etl_job_name} (Run ID: {run_id}) status: {job_status}")
+        if job_status in ['SUCCEEDED', 'FAILED', 'STOPPED']:
             break
         time.sleep(10)
-        
-    client.start_crawler(Name=config_data["aws_glue"]["crawler_name"])
-    while True:
-        response = client.get_crawler(Name=config_data["aws_glue"]["crawler_name"])      
-        status = response['Crawler']['State']
-        print(f"Crawler status: {status}")
-        if status == 'READY':
-            break
-        time.sleep(10)
-
-    print(f"Crawler {response['Crawler']['Name']} finished running...")
-    return status
+    
+    if etl_job_name == config_data["aws_glue"]["etl_jobs"][0]["name"]:    
+        client.start_crawler(Name=config_data["aws_glue"]["crawler_name"])
+        while True:
+            response = client.get_crawler(Name=config_data["aws_glue"]["crawler_name"])      
+            status = response['Crawler']['State']
+            print(f"Crawler status: {status}")
+            if status == 'READY':
+                break
+            time.sleep(10)
+        print(f"Crawler {response['Crawler']['Name']} finished running...")
+    elif etl_job_name == config_data["aws_glue"]["etl_jobs"][1]["name"]:
+        client.start_crawler(Name=config_data["aws_glue"]["crawler_name2"])
+        while True:
+            response2 = client.get_crawler(Name=config_data["aws_glue"]["crawler_name2"])      
+            status = response2['Crawler']['State']
+            print(f"Crawler status: {status}")
+            if status == 'READY':
+                break
+            time.sleep(10)
+        print(f"Crawler {response2['Crawler']['Name']} finished running...")
+    return job_status, status
 
 def run_etl_pipeline():
     aws_session = create_aws_session(access_keyid, aws_secret_key, region_name) #'default', acct_id
@@ -82,7 +93,7 @@ def run_etl_pipeline():
     try:
         glue_client.create_database(DatabaseInput={
         'Name': config_data["aws_glue"]["catalog"],
-        'Description': 'Catalog for processed and curated data zone of pokemon data.',
+        'Description': 'Database for processed data zone of pokemon data.',
         'LocationUri': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["processed_prefix"]),
         'CreateTableDefaultPermissions': [
             {
@@ -94,15 +105,15 @@ def run_etl_pipeline():
             ]
         } 
         )
-        print(f"Created database: {config_data['aws_glue']['catalog']}")
+        print(f"Created database: {config_data['aws_glue']['processed_database']}")
     except Exception as e:
-        print(f"Database {config_data['aws_glue']['catalog']} already exists.")
+        print(f"Database {config_data['aws_glue']['processed_database']} already exists.")
     
     try:
         glue_client.create_crawler( 
             Name=config_data["aws_glue"]["crawler_name"],
             Role=glue_arn, 
-            DatabaseName=config_data["aws_glue"]["catalog"],
+            DatabaseName=config_data["aws_glue"]["processed_database"],
             Targets={
                 'S3Targets': [
                     {'Path': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["processed_prefix"])}
@@ -115,7 +126,7 @@ def run_etl_pipeline():
             },
             Description='Crawler for processed data zone in S3.')
     except Exception as e:
-        print(f"Crawler for database {config_data['aws_glue']['catalog']} already exists.")
+        print(f"Crawler for database {config_data['aws_glue']['processed_database']} already exists.")
     
     try:
         existing_job = glue_client.get_job(JobName=config_data["aws_glue"]["etl_jobs"][0]["name"])
@@ -124,7 +135,6 @@ def run_etl_pipeline():
         response = glue_client.create_job(
             Name=config_data["aws_glue"]["etl_jobs"][0]["name"],
             Role=glue_arn,  # Replace with your IAM role ARN
-            JobMode='SCRIPT',
             ExecutionProperty={'MaxConcurrentRuns': 1},
             Command={
                 'Name': 'pythonshell',
@@ -133,7 +143,7 @@ def run_etl_pipeline():
             },
             DefaultArguments={
                 '--TempDir': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["temp"]),
-                '--extra-py-files': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["dependencies"] + 'src_etl-0.1.0-py3-none-any.whl'),
+                '--extra-py-files': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["dependencies"] + 'pokemonetl-0.1.0-py3-none-any.whl'),
                 '--job-language': 'python',
                 '--additional-python-modules': 'pandas,boto3'
             },
@@ -154,7 +164,7 @@ def run_etl_pipeline():
             '--output_loc': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["processed_prefix"]), 
         }
     )
-    status1 = wait_for_job_and_crawler_completion(glue_client, config_data["aws_glue"]["etl_jobs"][0]["name"], raw_run_id)
+    job_status1, status1 = wait_for_job_and_crawler_completion(glue_client, config_data["aws_glue"]["etl_jobs"][0]["name"], raw_run_id)
     """
     glue_client.update_job(
         JobName=config["aws_glue"]["etl_jobs"][1]["name"],
@@ -170,12 +180,49 @@ def run_etl_pipeline():
     )
     """
     curated_run_id = None
-    if status1 == 'SUCCEEDED':
+    if job_status1 == 'SUCCEEDED' and status1 == 'READY':
+        try:
+            glue_client.create_database(DatabaseInput={
+                'Name': config_data["aws_glue"]["curated_database"],
+                'Description': 'Database for curated data zone of pokemon data.',
+                'LocationUri': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["curated_prefix"]),
+                'CreateTableDefaultPermissions': [
+                    {
+                        'Principal': {
+                            'DataLakePrincipalIdentifier': glue_arn
+                        },
+                        'Permissions': ['ALL']
+                    },
+                    ]
+                } 
+            )
+            print(f"Created database: {config_data['aws_glue']['curated_database']}")
+        except Exception as e:
+            print(f"Database {config_data['aws_glue']['curated_database']} already exists.")
+        
+        try:
+            glue_client.create_crawler( 
+                Name=config_data["aws_glue"]["crawler_name2"],
+                Role=glue_arn, 
+                DatabaseName=config_data["aws_glue"]["curated_database"],
+                Targets={
+                    'S3Targets': [
+                        {'Path': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["curated_prefix"])}
+                    ]
+                },
+                TablePrefix= config_data["s3_bucket"]["curated_prefix"],
+                SchemaChangePolicy={
+                    'UpdateBehavior': 'UPDATE_IN_DATABASE',
+                    'DeleteBehavior': 'DEPRECATE_IN_DATABASE'
+                },
+                Description='Crawler for curated data zone in S3.')
+        except Exception as e:
+            print(f"Crawler for database {config_data['aws_glue']['curated_database']} already exists.")
+            
         # Stage 2: processed to curated
         response2 = glue_client.create_job(
             Name=config_data["aws_glue"]["etl_jobs"][1]["name"],
             Role=glue_arn,  # Replace with your IAM role ARN
-            JobMode='SCRIPT',
             ExecutionProperty={'MaxConcurrentRuns': 1},
             Command={
                 'Name': 'pythonshell',
@@ -184,7 +231,7 @@ def run_etl_pipeline():
             },
             DefaultArguments={
                 '--TempDir': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["temp"]),
-                '--extra-py-files': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["dependencies"] + 'src_etl-0.1.0-py3-none-any.whl'),
+                '--extra-py-files': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["dependencies"] + 'pokemonetl-0.1.0-py3-none-any.whl'),
                 '--job-language': 'python',
                 '--additional-python-modules': 'pandas,boto3'
             },
@@ -204,17 +251,10 @@ def run_etl_pipeline():
                 '--output_loc': str(config_data["s3_bucket"]["bucket"] + config_data["s3_bucket"]["curated_prefix"]) 
             }
         )
-    status2 = None
-    if curated_run_id == None:
-        glue_client.close()
+        job_status2, status2 = wait_for_job_and_crawler_completion(glue_client, config_data["aws_glue"]["etl_jobs"][1]["name"], curated_run_id)
+        print(f"Entire ETL pipeline {job_status2}!")
     else:
-        status2 = wait_for_job_and_crawler_completion(glue_client, config_data["aws_glue"]["etl_jobs"][1]["name"], curated_run_id)
-    
-    if status2 == None:
-        print(f"ETL pipeline FAILED!")
-    else:
-        print(f"Entire ETL pipeline {status2}!")
-    glue_client.close()
+        print(f"Entire ETL pipeline {job_status1}!")
 
 if __name__ == '__main__':
     run_etl_pipeline()
