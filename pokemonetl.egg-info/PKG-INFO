@@ -1,5 +1,4 @@
-Metadata-Version: 2.4
+Metadata-Version: 2.1
 Name: pokemonetl
 Version: 0.1.0
 Summary: The etl modules and sql queries for pokemon datalake and analytics project.
-Dynamic: summary

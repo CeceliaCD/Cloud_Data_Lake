@@ -169,11 +169,11 @@ def transform_data(processing_data_df):
             
     #Pokemon that are mono-types 
     if 'Type_2' in column_names:       
-        processing_data_df['Type_2'].fillna('None')
+        processing_data_df['Type_2'] = processing_data_df['Type_2'].replace('', 'None') 
         
     #Genderless pokemon numeric value
     if 'gender_male_ratio' in column_names:
-        processing_data_df['gender_male_ratio'].fillna(255).astype(int)
+        processing_data_df['gender_male_ratio'] = processing_data_df['gender_male_ratio'].fillna(255).astype(int)
     
     #Removing columns with majority null values
     for col in column_names:
@@ -235,7 +235,9 @@ def transform_data(processing_data_df):
                 processing_data_df.loc[index, 'curr_status'] = curr_stat
                 processing_data_df.loc[index, 'curr_status_value'] = curr_stat_val
                 processing_data_df.loc[index, 'masterball_capture'] = ball_capprob
-            
+    
+    for col in processing_data_df.columns:
+        processing_data_df[col] = pd.to_numeric(processing_data_df[col], errors='ignore')
     print(processing_data_df) 
     
     return processing_data_df

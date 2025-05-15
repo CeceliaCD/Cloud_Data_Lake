@@ -13,7 +13,7 @@ def load_s3_data(client, df, keypath):
         if isinstance(df, pd.DataFrame):
             filename = "pokemon_processsed_data_results.json"
             key = keypath.split('/')[3]+'/'
-            df.to_json(filename, orient='records')  #index
+            df.to_json(filename, orient='records', lines=True)  #index
             #df.to_parquet('result_file, engine='pyarrow', index=False)  
             client.upload_file(filename, bucketname, key+filename)
         else:
