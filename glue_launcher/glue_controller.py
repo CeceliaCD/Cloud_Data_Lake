@@ -28,11 +28,13 @@ acct_id = os.getenv("ACCOUNT_ID")
 """_summary_
 ETL transform and load data to S3
 
-Glue Crawler job to Scan Processed and Curated Zone and Update Catalog
+Glue controller (triggers ETL on raw data) -> loads processed data to S3 processed zone
 
-Run Athena Query to get Curated data then Store in "curated/"
+Glue Crawler job triggered -> scans Processed and Curated Zone and update Glue Catalog
 
-Connect Tableau to Athena for visualization
+Run Athena Query -> attain Curated data then store in Curated Zone
+
+Connect Tableau to Athena for visualization/ Download data and load files to Tableau for visualization
 """
 
 #Connect to AWS S3 bucket and upload data
